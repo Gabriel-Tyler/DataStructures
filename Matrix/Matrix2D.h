@@ -2,13 +2,15 @@
 
 #include <iostream>
 
-template<typename T, size_t M, size_t N> 
+template<typename T> 
 class Matrix2D
 {
 private:
+    size_t nRows;
+    size_t nCols;
     T* data;
 public:
-    Matrix2D();
+    Matrix2D(size_t rows, size_t cols);
     Matrix2D(const Matrix2D& m);
     Matrix2D(Matrix2D&& m);
     const Matrix2D& operator=(const Matrix2D& rhs);
@@ -23,182 +25,184 @@ public:
     T& at(size_t row, size_t col);
     const T& at(size_t row, size_t col) const;
 
-    template<typename S, size_t I, size_t J>
-    friend Matrix2D<S, I, J> operator+(const Matrix2D<S, I, J>& lhs, const Matrix2D<S, I, J>& rhs);
-    template<typename S, size_t I, size_t J>
-    friend Matrix2D<S, I, J> operator+(const S& lhs, const Matrix2D<S, I, J>& rhs);
-    template<typename S, size_t I, size_t J>
-    friend Matrix2D<S, I, J> operator+(const Matrix2D<S, I, J>& lhs, const S& rhs);
+    template<typename S>
+    friend Matrix2D<S> operator+(const Matrix2D<S>& lhs, const Matrix2D<S>& rhs);
+    template<typename S>
+    friend Matrix2D<S> operator+(const S& lhs, const Matrix2D<S>& rhs);
+    template<typename S>
+    friend Matrix2D<S> operator+(const Matrix2D<S>& lhs, const S& rhs);
 
     Matrix2D& operator+=(const Matrix2D& rhs);
     Matrix2D& operator+=(const T& rhs);
 
-    template<typename S, size_t I, size_t J, size_t K>
-    friend Matrix2D<S, I, K> operator*(const Matrix2D<S, I, J>& lhs, const Matrix2D<S, J, K>& rhs);
+    template<typename S>
+    friend Matrix2D<S> operator*(const Matrix2D<S>& lhs, const Matrix2D<S>& rhs);
 
-    // template<typename T, size_t M, size_t N>
-    // friend Matrix2D<T, M, N> operator*(const T& lhs, const Matrix2D<T, M, N>& rhs);
-    // template<typename T, size_t M, size_t N>
-    // friend Matrix2D<T, M, N> operator*(const Matrix2D<T, M, N>& lhs, const T& rhs);
+    // template<typename T>
+    // friend Matrix2D<T> operator*(const T& lhs, const Matrix2D<T>& rhs);
+    // template<typename T>
+    // friend Matrix2D<T> operator*(const Matrix2D<T>& lhs, const T& rhs);
 
     Matrix2D& operator*=(const Matrix2D& rhs);
     Matrix2D& operator*=(const T& rhs);
 
-    // friend Matrix2D<T, M, N> operator/(const Matrix2D<T, M, N>& lhs, const T& rhs);
+    // friend Matrix2D<T> operator/(const Matrix2D<T>& lhs, const T& rhs);
     // Matrix2D& operator/=(const T& rhs);
 };
 
-template<typename T, size_t M, size_t N>
-Matrix2D<T, M, N>::Matrix2D()
+template<typename T>
+Matrix2D<T>::Matrix2D(size_t rows, size_t cols)
+    : nRows(rows), nCols(cols)
 {
-    data = new T[M*N];
+    data = new T[rows*cols];
 }
-template<typename T, size_t M, size_t N>
-Matrix2D<T, M, N>::Matrix2D(const Matrix2D& m)
+template<typename T>
+Matrix2D<T>::Matrix2D(const Matrix2D<T>& m)
+    : nRows(m.nRows), nCols(m.nCols)
 {
-    data = new T[M*N];
-    for (size_t i = 0; i < M*N; ++i) 
+    data = new T[nRows*nCols];
+    for (size_t i = 0; i < nRows*nCols; ++i) 
     {
         data[i] = m.data[i];
     }
 }
-template<typename T, size_t M, size_t N>
-Matrix2D<T, M, N>::Matrix2D(Matrix2D&& m)
+template<typename T>
+Matrix2D<T>::Matrix2D(Matrix2D<T>&& m)
+    : nRows(m.nRows), nCols(m.nCols), data(m.data)
 {
-    data = m.data;
     m.data = nullptr;
 }
-template<typename T, size_t M, size_t N>
-const Matrix2D<T, M, N>& Matrix2D<T, M, N>::operator=(const Matrix2D& rhs)
+template<typename T>
+const Matrix2D<T>& Matrix2D<T>::operator=(const Matrix2D<T>& rhs)
 {
-    data = new T[M*N];
-    for (size_t i = 0; i < M*N; ++i) 
+    nRows = rhs.nRows;
+    nCols = rhs.nCols;
+    data = new T[nRows*nCols];
+    for (size_t i = 0; i < nRows*nCols; ++i) 
     {
         data[i] = rhs.data[i];
     }
 }
-template<typename T, size_t M, size_t N>
-const Matrix2D<T, M, N>& Matrix2D<T, M, N>::operator=(Matrix2D&& rhs)
+template<typename T>
+const Matrix2D<T>& Matrix2D<T>::operator=(Matrix2D<T>&& rhs)
 {
+    nRows = rhs.nRows;
+    nCols = rhs.nCols;
     data = rhs.data;
     rhs.data = nullptr;
 }
-template<typename T, size_t M, size_t N>
-Matrix2D<T, M, N>::~Matrix2D()
+template<typename T>
+Matrix2D<T>::~Matrix2D()
 {
     delete[] data;
 }
 
-template<typename T, size_t M, size_t N>
-void Matrix2D<T, M, N>::Fill(T fillValue)
+template<typename T>
+void Matrix2D<T>::Fill(T fillValue)
 {
-    size_t size = M*N;
-    for (size_t i = 0; i < size; ++i)
+    for (size_t i = 0; i < nRows*nCols; ++i)
     {
         data[i] = fillValue;
     }
 }
-template<typename T, size_t M, size_t N>
-void Matrix2D<T, M, N>::Print() const
-{ 
-    size_t size = M*N;
-    for (size_t i = 0; i < size; ++i)
+template<typename T>
+void Matrix2D<T>::Print() const
+{
+    for (size_t i = 0; i < nRows*nCols; ++i)
     {
-        std::cout << data[i] << ((i+1) % N == 0 ? '\n' : ' ');
+        std::cout << data[i] << ((i+1) % nRows*nCols == 0 ? '\n' : ' ');
     }
 }
-template<typename T, size_t M, size_t N>
-void Matrix2D<T, M, N>::PrintArray() const
+template<typename T>
+void Matrix2D<T>::PrintArray() const
 {
-    size_t size = M*N;
-    for (size_t i = 0; i < size; ++i)
+    for (size_t i = 0; i < nRows*nCols; ++i)
     {
         std::cout << data[i] << ' ';
     }
     std::cout << '\n';
 }
-template<typename T, size_t M, size_t N>
-void Matrix2D<T, M, N>::FillIncrement(T start, T inc)
+template<typename T>
+void Matrix2D<T>::FillIncrement(T start, T inc)
 {
-    size_t size = M*N;
-    for (size_t i = 0; i < size; ++i)
+    for (size_t i = 0; i <  nRows*nCols; ++i)
     {
         data[i] = start;
         start = start + inc;
     }
 }
 
-template<typename T, size_t M, size_t N>
-T& Matrix2D<T, M, N>::at(size_t row, size_t col)
+template<typename T>
+T& Matrix2D<T>::at(size_t row, size_t col)
 {
-    return data[col + row*N];
+    return data[col + row*nCols];
 }
-template<typename T, size_t M, size_t N>
-const T& Matrix2D<T, M, N>::at(size_t row, size_t col) const
+template<typename T>
+const T& Matrix2D<T>::at(size_t row, size_t col) const
 {
-    return data[col + row*N];
+    return data[col + row*nCols];
 }
 
-template<typename T, size_t M, size_t N>
-Matrix2D<T, M, N> operator+(const Matrix2D<T, M, N>& lhs, const Matrix2D<T, M, N>& rhs)
+template<typename T>
+Matrix2D<T> operator+(const Matrix2D<T>& lhs, const Matrix2D<T>& rhs)
 {
-    Matrix2D<T, M, N> m = lhs;
-    for (size_t i = 0; i < M*N; ++i)
+    Matrix2D<T> m = lhs;
+    for (size_t i = 0; i < m.nRows*m.nCols; ++i)
     {
         m.data[i] += rhs.data[i];
     }
     return m;
 }
-template<typename T, size_t M, size_t N>
-Matrix2D<T, M, N> operator+(const T& lhs, const Matrix2D<T, M, N>& rhs)
+template<typename T>
+Matrix2D<T> operator+(const T& lhs, const Matrix2D<T>& rhs)
 {
-    Matrix2D<T, M, N> m = rhs;
-    for (size_t i = 0; i < M*N; ++i)
+    Matrix2D<T> m = rhs;
+    for (size_t i = 0; i < m.nRows*m.nCols; ++i)
     {
         m.data[i] += lhs;
     }
     return m;
 }
-template<typename T, size_t M, size_t N>
-Matrix2D<T, M, N> operator+(const Matrix2D<T, M, N>& lhs, const T& rhs)
+template<typename T>
+Matrix2D<T> operator+(const Matrix2D<T>& lhs, const T& rhs)
 {
-    Matrix2D<T, M, N> m = lhs;
-    for (size_t i = 0; i < M*N; ++i)
+    Matrix2D<T> m = lhs;
+    for (size_t i = 0; i < m.nRows*m.nCols; ++i)
     {
         m.data[i] += rhs;
     }
     return m;
 }
 
-template<typename T, size_t M, size_t N>
-Matrix2D<T, M, N>& Matrix2D<T, M, N>::operator+=(const Matrix2D<T, M, N>& rhs)
+template<typename T>
+Matrix2D<T>& Matrix2D<T>::operator+=(const Matrix2D<T>& rhs)
 {
-    for (size_t i = 0; i < M*N; ++i)
+    for (size_t i = 0; i < nRows*nCols; ++i)
     {
         data[i] += rhs.data[i];
     }
     return *this;
 }
-template<typename T, size_t M, size_t N>
-Matrix2D<T, M, N>& Matrix2D<T, M, N>::operator+=(const T& rhs)
+template<typename T>
+Matrix2D<T>& Matrix2D<T>::operator+=(const T& rhs)
 {
-    for (size_t i = 0; i < M*N; ++i)
+    for (size_t i = 0; i < nRows*nCols; ++i)
     {
         data[i] += rhs;
     }
     return *this;
 }
 
-template<typename T, size_t M, size_t N, size_t K>
-Matrix2D<T, M, K> operator*(const Matrix2D<T, M, N>& lhs, const Matrix2D<T, N, K>& rhs)
+template<typename T>
+Matrix2D<T> operator*(const Matrix2D<T>& lhs, const Matrix2D<T>& rhs)
 {
-    Matrix2D<T, M, K> m;
-    for (size_t i = 0; i < M; ++i)
+    Matrix2D<T> m(lhs.nRows, rhs.nCols);
+    for (size_t i = 0; i < lhs.nRows; ++i)
     {
-        for (size_t j = 0; j < K; ++j)
+        for (size_t j = 0; j < rhs.nCols; ++j)
         {
             m.at(i, j) = T();
-            for (size_t k = 0; k < N; ++k)
+            for (size_t k = 0; k < lhs.nCols; ++k)
             {
                 m.at(i, j) += lhs.at(i, k) * rhs.at(k, j);
             }
@@ -207,38 +211,38 @@ Matrix2D<T, M, K> operator*(const Matrix2D<T, M, N>& lhs, const Matrix2D<T, N, K
     return m;
 }
 /*
-template<typename T, size_t M, size_t N>
-Matrix2D<T, M, N> operator*(const T& lhs, const Matrix2D<T, M, N>& rhs)
+template<typename T>
+Matrix2D<T> operator*(const T& lhs, const Matrix2D<T>& rhs)
 {
-    Matrix2D<T, M, N> m = rhs;
-    for (size_t i = 0; i < M*N; ++i)
+    Matrix2D<T> m = rhs;
+    for (size_t i = 0; i < M*nRows*nCols; ++i)
     {
         m.data[i] *= lhs;
     }
     return m;
 }
-template<typename T, size_t M, size_t N>
-Matrix2D<T, M, N> operator*(const Matrix2D<T, M, N>& lhs, const T& rhs)
+template<typename T>
+Matrix2D<T> operator*(const Matrix2D<T>& lhs, const T& rhs)
 {
-    Matrix2D<T, M, N> m = lhs;
-    for (size_t i = 0; i < M*N; ++i)
+    Matrix2D<T> m = lhs;
+    for (size_t i = 0; i < M*nRows*nCols; ++i)
     {
         m.data[i] *= rhs;
     }
     return m;
 }
 */
-template<typename T, size_t M, size_t N>
-Matrix2D<T, M, N>& Matrix2D<T, M, N>::operator*=(const Matrix2D<T, M, N>& rhs)
+template<typename T>
+Matrix2D<T>& Matrix2D<T>::operator*=(const Matrix2D<T>& rhs)
 {
-    // check if M equals N
+    // check if M equals nRows*nCols
     // create a temp
 }
 
-template<typename T, size_t M, size_t N>
-Matrix2D<T, M, N>& Matrix2D<T, M, N>::operator*=(const T& rhs)
+template<typename T>
+Matrix2D<T>& Matrix2D<T>::operator*=(const T& rhs)
 {
-    for (size_t i = 0; i < M*N; ++i)
+    for (size_t i = 0; i < nRows*nCols; ++i)
     {
         data[i] *= rhs;
     }
